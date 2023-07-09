@@ -1,16 +1,19 @@
 using UnityEngine;
 using TMPro;
 using Mirror;
+using UnityEngine.Serialization;
 
 namespace NeworkChat
 {
     public class UIMessageInputField : MonoBehaviour
     {
         public static UIMessageInputField Instance;
+        
+        [SerializeField] private TMP_InputField m_MessageInputField;
 
-        [SerializeField] private TMP_InputField m_inputField;
+        [SerializeField] private TMP_InputField m_NickNameField;
 
-        public bool IsEmpty => m_inputField.text == "";
+        public bool IsEmpty => m_MessageInputField.text == "";
 
 
         private void Awake()
@@ -20,12 +23,17 @@ namespace NeworkChat
 
         public string GetString()
         {
-            return m_inputField.text;
+            return m_MessageInputField.text;
         }
 
         public void ClearString()
         {
-            m_inputField.text = "";
+            m_MessageInputField.text = "";
+        }
+
+        public string GetNickName()
+        {
+            return m_NickNameField.text;
         }
 
         public void SendMessageToChat()
@@ -33,7 +41,10 @@ namespace NeworkChat
             User.Local.SendMessageToChat();
         }
 
-
+        public void JoinToChat()
+        {
+            User.Local.JoinToChat();
+        }
 
     }
 }
