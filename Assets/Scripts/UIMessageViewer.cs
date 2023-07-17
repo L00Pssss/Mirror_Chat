@@ -3,6 +3,7 @@ using TMPro;
 using Mirror;
 using System;
 using System.Collections.Generic;
+using UnityEngine.Assertions.Must;
 
 namespace NeworkChat
 {
@@ -28,21 +29,26 @@ namespace NeworkChat
             UserList.UpdateUserList -= OnUpdateUserList;
         }
 
-        private void OnReciveMessageToChat(int userId, string message, string nickname)
+        private void OnReciveMessageToChat(UserData data, string message)
         {
-            AppendMessage(userId, message, nickname);
+            AppendUserToUserList(data, message);
         }
 
-        private void AppendMessage(int userId, string message, string nickname)
+        private void OnUpdateUserList(List<UserData> userList)
+        {
+            UpdateUserList(userList);
+        }
+
+        private void AppendUserToUserList(UserData data, string message)
         {
             UIMessageBox messageBox = Instantiate(m_messageBox);
 
-            messageBox.SetText(nickname + ": " + message);
+            messageBox.SetText(data.Nickname + ": " + message);
 
             messageBox.transform.SetParent(m_messagePanel);
             messageBox.transform.localScale = Vector3.one;
 
-            if (userId == User.Local.Data.Id)
+            if (data.Id == User.Local.Data.Id)
             {
                 messageBox.SetStyleBySelf();
             }
@@ -52,11 +58,11 @@ namespace NeworkChat
             }
         }
 
-        private void OnUpdateUserList(List<UserData> userList)
+        private void UpdateUserList(List<UserData> userList)
         {
-            foreach (Transform childTransform in m_userListPanel)
+            foreach (Transform GetChild in m_userListPanel)
             {
-                Destroy(childTransform.gameObject);
+                Destroy(GetChild.gameObject);
             }
             
             foreach (var userListPanel in userList)

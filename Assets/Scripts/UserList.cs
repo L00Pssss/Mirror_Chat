@@ -23,10 +23,9 @@ namespace NeworkChat
         }
 
         [Server]
-        public void SvAddCurrentUser(int userId, string userNickname)
+        public void SvAddCurrentUser(UserData data)
         {
-		    UserData userData = new UserData(userId, userNickname);
-            AllUsersData.Add(userData);
+            AllUsersData.Add(data);
 
             if (isServerOnly == true)
             {
@@ -35,18 +34,18 @@ namespace NeworkChat
 
             foreach (UserData userdata in AllUsersData)
             {
-                RpcAddCurrentUser(userdata.Id, userdata.Nickname);
+                RpcAddCurrentUser(data);
             }
         }
 
         [Server]
-        public void SvRemoveCurrentUser(int userId)
+        public void SvRemoveCurrentUser(UserData data)
         {
             List<UserData> usersToRemove = new List<UserData>();
 
             foreach (UserData userData in AllUsersData)
             {
-                if (userData.Id == userId)
+                if (userData.Id == data.Id)
                 {
                     usersToRemove.Add(userData);
                     break;
@@ -58,7 +57,7 @@ namespace NeworkChat
                 AllUsersData.Remove(userToRemove);
             }
 
-            RpcRemoveCurrentUser(userId);
+            RpcRemoveCurrentUser(data);
         }
 
         [ClientRpc]
@@ -68,28 +67,26 @@ namespace NeworkChat
         }
 
         [ClientRpc]
-        private void RpcAddCurrentUser(int userId, string userNickname)
+        private void RpcAddCurrentUser(UserData data)
         {
             if (isClient == true && isServer == true)
             {
                 UpdateUserList?.Invoke(AllUsersData);
                 return;
             }
-
-            UserData userData = new UserData(userId, userNickname);
-            AllUsersData.Add(userData);
+            AllUsersData.Add(data);
 
             UpdateUserList?.Invoke(AllUsersData);
         }
 
         [ClientRpc]
-        private void RpcRemoveCurrentUser(int userId)
+        private void RpcRemoveCurrentUser(UserData data)
         {
             List<UserData> usersToRemove = new List<UserData>();
 
             foreach (UserData userData in AllUsersData)
             {
-                if (userData.Id == userId)
+                if (userData.Id == data.Id)
                 {
                     usersToRemove.Add(userData);
                     break;
