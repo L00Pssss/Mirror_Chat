@@ -5,100 +5,44 @@ using UnityEngine.Events;
 
 namespace NeworkChat
 {
-    public class UserList : NetworkBehaviour 
+    public class UserList : NetworkBehaviour
     {
-	    public static UserList Instance;
-	    private void Awake()
+        public static UserList Instance;
+        private void Awake()
         {
-	        Instance = this;
+            Instance = this;
         }
-	    
-	    [SerializeField] private List<UserData> AllUsersData = new List<UserData>(); // изменить на приват. 
+
+        [SerializeField] private List<UserData> AllUsersData = new List<UserData>();
+
         public static UnityAction<List<UserData>> UpdateUserList;
+
         public override void OnStartClient()
         {
             base.OnStartClient();
-
-            AllUsersData.Clear();
+            // Не нужно очищать список при старте клиента.
+            // Вместо этого, он будет синхронизирован с сервером.
         }
 
         [Server]
         public void SvAddCurrentUser(UserData data)
         {
             AllUsersData.Add(data);
-
-            if (isServerOnly == true)
-            {
-                RpcClearUserDataList();
-            }
-
-            foreach (UserData userdata in AllUsersData)
-            {
-                RpcAddCurrentUser(data);
-            }
+            RpcUpdateUserList(AllUsersData);
         }
 
         [Server]
         public void SvRemoveCurrentUser(UserData data)
         {
-            List<UserData> usersToRemove = new List<UserData>();
-
-            foreach (UserData userData in AllUsersData)
-            {
-                if (userData.Id == data.Id)
-                {
-                    usersToRemove.Add(userData);
-                    break;
-                }
-            }
-
-            foreach (UserData userToRemove in usersToRemove)
-            {
-                AllUsersData.Remove(userToRemove);
-            }
-
-            RpcRemoveCurrentUser(data);
+            AllUsersData.Remove(data);
+            RpcUpdateUserList(AllUsersData);
         }
 
         [ClientRpc]
-        private void RpcClearUserDataList()
+        private void RpcUpdateUserList(List<UserData> userList)
         {
-		    AllUsersData.Clear();
-        }
-
-        [ClientRpc]
-        private void RpcAddCurrentUser(UserData data)
-        {
-            if (isClient == true && isServer == true)
-            {
-                UpdateUserList?.Invoke(AllUsersData);
-                return;
-            }
-            AllUsersData.Add(data);
-
-            UpdateUserList?.Invoke(AllUsersData);
-        }
-
-        [ClientRpc]
-        private void RpcRemoveCurrentUser(UserData data)
-        {
-            List<UserData> usersToRemove = new List<UserData>();
-
-            foreach (UserData userData in AllUsersData)
-            {
-                if (userData.Id == data.Id)
-                {
-                    usersToRemove.Add(userData);
-                    break;
-                }
-            }
-
-            foreach (UserData userToRemove in usersToRemove)
-            {
-                AllUsersData.Remove(userToRemove);
-            }
-
-            UpdateUserList?.Invoke(AllUsersData);
+            // Обновляем список только на клиенте, к которому применяется это RPC.
+            UpdateUserList?.Invoke(userList);
         }
     }
 }
